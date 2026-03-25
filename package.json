@@ -1,0 +1,27 @@
+{
+  "name": "snappage-extension",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
+    "compile": "tsc --noEmit",
+    "postinstall": "wxt prepare"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.38",
+    "@wxt-dev/auto-icons": "^1.1.1",
+    "sharp": "^0.34.5",
+    "typescript": "^5.0.0",
+    "wxt": "^0.20.13"
+  },
+  "dependencies": {
+    "jspdf": "^4.2.1",
+    "tesseract.js": "^7.0.0"
+  }
+}

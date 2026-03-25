@@ -1,0 +1,12 @@
+node_modules/
+.output/
+.wxt/
+*.zip
+.tmp/
+
+# Environment & secrets
+.env
+.env.*
+*.key
+credentials.*
+

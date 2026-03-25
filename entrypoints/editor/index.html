@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Screenshot Editor — SnapPage</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-group">
+      <button class="tool-btn active" data-tool="select" title="Select / Move (V)">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 3l10 7-5 1-2 5z"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="crop" title="Crop (C)">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 2v13h13M2 5h13v13"/></svg>
+      </button>
+      <div class="toolbar-divider"></div>
+      <button class="tool-btn" data-tool="arrow" title="Arrow (A)">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 16L16 4M16 4l-5 1M16 4l-1 5"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="rect" title="Rectangle (R)">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="14" height="10" rx="1"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="text" title="Text (T)">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5h12M10 5v12"/></svg>
+      </button>
+      <button class="tool-btn" data-tool="blur" title="Blur (B)">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7" stroke-dasharray="2 2"/><path d="M7 10h6" opacity="0.5"/></svg>
+      </button>
+    </div>
+    <div class="toolbar-group">
+      <label class="color-picker-wrap" title="Color">
+        <input type="color" id="tool-color" value="#FF0000" class="color-input">
+        <span class="color-preview" id="color-preview"></span>
+      </label>
+      <select id="tool-size" class="tool-select" title="Size">
+        <option value="2">Thin</option>
+        <option value="3" selected>Normal</option>
+        <option value="5">Thick</option>
+        <option value="8">Bold</option>
+      </select>
+      <select id="font-size" class="tool-select" title="Font Size">
+        <option value="16">16px</option>
+        <option value="20">20px</option>
+        <option value="28" selected>28px</option>
+        <option value="36">36px</option>
+        <option value="48">48px</option>
+      </select>
+    </div>
+    <div class="toolbar-group">
+      <button class="action-btn" id="btn-undo" title="Undo (Ctrl+Z)">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 8l4-4M4 8l4 4M4 8h9a4 4 0 010 8H11"/></svg>
+        Undo
+      </button>
+      <button class="action-btn" id="btn-redo" title="Redo (Ctrl+Y)">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 8l-4-4M16 8l-4 4M16 8H7a4 4 0 000 8h2"/></svg>
+        Redo
+      </button>
+      <div class="toolbar-divider"></div>
+      <button class="action-btn" id="btn-reset" title="Reset all edits">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4l12 12M16 4L4 16"/></svg>
+        Reset
+      </button>
+    </div>
+    <div class="toolbar-group">
+      <div class="toolbar-divider"></div>
+      <button class="action-btn ai-btn" id="btn-ocr" title="Extract text from screenshot (OCR)">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7V5a2 2 0 012-2h2M13 3h2a2 2 0 012 2v2M17 13v2a2 2 0 01-2 2h-2M7 17H5a2 2 0 01-2-2v-2"/><path d="M7 8h6M7 11h4"/></svg>
+        OCR
+      </button>
+      <button class="action-btn ai-btn" id="btn-redact" title="Auto-detect and blur emails, phones, IPs">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10a7 7 0 0114 0"/><circle cx="10" cy="10" r="2"/><path d="M2 4l16 12" stroke-width="2"/></svg>
+        Auto-Redact
+      </button>
+    </div>
+    <div class="toolbar-group toolbar-right">
+      <select id="export-format" class="tool-select">
+        <option value="png">PNG</option>
+        <option value="jpeg">JPEG</option>
+        <option value="pdf">PDF</option>
+      </select>
+      <button class="save-btn" id="btn-save">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3v10M6 9l4 4 4-4"/><path d="M3 14v2a1 1 0 001 1h12a1 1 0 001-1v-2"/></svg>
+        Save
+      </button>
+    </div>
+  </div>
+
+  <!-- Canvas Area -->
+  <div class="canvas-area" id="canvas-area">
+    <canvas id="editor-canvas"></canvas>
+    <!-- Crop overlay -->
+    <div id="crop-overlay" class="crop-overlay hidden">
+      <div class="crop-selection" id="crop-selection">
+        <div class="crop-handle nw" data-handle="nw"></div>
+        <div class="crop-handle ne" data-handle="ne"></div>
+        <div class="crop-handle sw" data-handle="sw"></div>
+        <div class="crop-handle se" data-handle="se"></div>
+      </div>
+    </div>
+    <!-- Text input -->
+    <textarea id="text-input" class="text-input hidden" rows="1" placeholder="Type here..."></textarea>
+  </div>
+
+  <!-- OCR Results Panel -->
+  <div id="ocr-panel" class="ocr-panel hidden">
+    <div class="ocr-header">
+      <span>Extracted Text</span>
+      <div>
+        <button class="ocr-copy" id="ocr-copy" title="Copy text">Copy</button>
+        <button class="ocr-close" id="ocr-close" title="Close">&times;</button>
+      </div>
+    </div>
+    <pre id="ocr-text" class="ocr-text"></pre>
+  </div>
+
+  <!-- Status bar -->
+  <div class="statusbar">
+    <span id="status-dims"></span>
+    <span id="status-zoom"></span>
+    <span id="status-info"></span>
+  </div>
+
+  <script type="module" src="main.ts"></script>
+</body>
+</html>
