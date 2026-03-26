@@ -13,12 +13,22 @@ export default defineBackground(() => {
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message.type === "START_CAPTURE") {
       handleCapture(message)
-        .then(sendResponse)
+        .then((res) => {
+          try {
+            sendResponse(res);
+          } catch {
+            /* popup may have closed */
+          }
+        })
         .catch((err) => {
-          sendResponse({
-            type: "CAPTURE_ERROR",
-            error: err instanceof Error ? err.message : String(err),
-          });
+          try {
+            sendResponse({
+              type: "CAPTURE_ERROR",
+              error: err instanceof Error ? err.message : String(err),
+            });
+          } catch {
+            /* popup may have closed */
+          }
         });
       return true;
     }
