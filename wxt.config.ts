@@ -27,7 +27,6 @@ export default defineConfig({
       "downloads",
       "tabs",
       "storage",
-      "unlimitedStorage",
     ],
     action: {
       default_title: "SnapPage — Screenshot",
