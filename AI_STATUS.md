@@ -1,14 +1,18 @@
 # Project Status
+
 > Auto-updated. Read this before starting any work.
-> Last updated: 2026-03-22 02:57
+> Last updated: 2026-04-04 12:45
 
 ## Goal
+
 Build "Full Page Screenshot Master" -- a privacy-first, AI-powered Chrome extension for full-page screenshots. Monetize via freemium model ($29 lifetime Pro, $3/mo subscription). Target: 20K users in 12 months, $8K/mo revenue.
 
 ## In Progress
+
 - Nothing -- MVP v0.1.0 is built and ready for testing
 
 ## Done
+
 - Project scaffolding with WXT
 - Full audit (2026-03-20): Architecture, UI/UX, Security, Market Research
 - Competitive landscape research
@@ -30,6 +34,7 @@ Build "Full Page Screenshot Master" -- a privacy-first, AI-powered Chrome extens
   - Build: 34.12 kB total, 16.59 kB zip
 
 ## Next Up
+
 1. **TEST manually** -- load unpacked in Chrome, capture real pages
 2. Build free editor (crop, arrows, text, blur)
 3. Integrate Tesseract.js for local OCR (Pro)
@@ -40,6 +45,7 @@ Build "Full Page Screenshot Master" -- a privacy-first, AI-powered Chrome extens
 8. Launch on Product Hunt + HN
 
 ## Key Decisions
+
 - **Framework:** WXT 0.20.20 (Manifest V3)
 - **Architecture:** Programmatic injection, offscreen canvas stitching, typed messages
 - **Security:** Explicit CSP, sender validation, filename sanitization, 30K px limit, dev-only logging
@@ -48,20 +54,33 @@ Build "Full Page Screenshot Master" -- a privacy-first, AI-powered Chrome extens
 - **Positioning:** "The Privacy-First Smart Screenshot Tool"
 
 <!-- AUTO:GIT_LOG -->
+
 ## Recent Commits
+
 ```
-833e55b auto: AI_STATUS.md
-a45196d chore: fix .gitignore, remove node_modules from tracking
-d2d7780 feat: OCR text extraction + auto-redact PII
-9d3b65f auto: .env.example, .gemini/, .output/, .tmp/, .wxt/
-c6fedcd feat: v0.2.0 â€” editor, PDF export, area selection, CWS launch prep
+1f23cbc ci: add multi-store release workflow (Chrome + Firefox + Edge)
+2c787df agent: auto-commit before sync
+ca8ae78 agent: auto-commit before sync
+1efb556 agent: auto-commit before sync
+48f9b5a agent: auto-commit before sync
+11af83d fix: popup cleanup â€” correct success message, remove PDF dead code, safe sendResponse
+188e40c fix: direct download instead of broken editor, improve stitching
+2f48430 feat: add pre-commit hook with Prettier auto-format
+aa0820f fix: shorten manifest description to 132 char CWS limit
+418f03a feat: SnapPage â€” full page screenshot extension
 ```
+
 <!-- /AUTO:GIT_LOG -->
 
 <!-- AUTO:GIT_STATUS -->
+
 ## Uncommitted Changes
+
 Branch: `master`
+
 ```
-M AI_STATUS.md
+M CLAUDE.md
+?? HANDOFF.md
 ```
+
 <!-- /AUTO:GIT_STATUS -->
