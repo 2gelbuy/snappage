@@ -31,9 +31,9 @@ export default defineConfig({
     action: {
       default_title: "SnapPage — Screenshot",
     },
-    name: "SnapPage - Full Page Screenshot, Edit & PDF",
+    name: "SnapPage - Full Page Screenshot, Capture & Save",
     description:
-      "Capture full-page screenshots in one click. Free editor: crop, blur, arrows, PDF export. 100% private - nothing leaves your browser.",
+      "Capture full-page screenshots in one click. Full page, visible area & selection modes. Smart naming, 100% private.",
     commands: {
       _execute_action: {
         suggested_key: {
