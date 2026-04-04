@@ -1,7 +1,7 @@
 # Project Status
 
 > Auto-updated. Read this before starting any work.
-> Last updated: 2026-04-04 17:56
+> Last updated: 2026-04-04 20:15
 
 ## Goal
 
@@ -58,6 +58,7 @@ Build "Full Page Screenshot Master" -- a privacy-first, AI-powered Chrome extens
 ## Recent Commits
 
 ```
+250079e auto: AI_STATUS.md
 87aacdc auto: AI_STATUS.md, CLAUDE.md, HANDOFF.md
 1f23cbc ci: add multi-store release workflow (Chrome + Firefox + Edge)
 2c787df agent: auto-commit before sync
@@ -67,7 +68,6 @@ ca8ae78 agent: auto-commit before sync
 11af83d fix: popup cleanup â€” correct success message, remove PDF dead code, safe sendResponse
 188e40c fix: direct download instead of broken editor, improve stitching
 2f48430 feat: add pre-commit hook with Prettier auto-format
-aa0820f fix: shorten manifest description to 132 char CWS limit
 ```
 
 <!-- /AUTO:GIT_LOG -->
