@@ -1,7 +1,7 @@
 # Project Status
 
 > Auto-updated. Read this before starting any work.
-> Last updated: 2026-04-04 20:18
+> Last updated: 2026-04-04 21:17
 
 ## Goal
 
@@ -58,6 +58,7 @@ Build "Full Page Screenshot Master" -- a privacy-first, AI-powered Chrome extens
 ## Recent Commits
 
 ```
+9af4dbb auto: AI_STATUS.md
 d504a24 auto: AI_STATUS.md
 250079e auto: AI_STATUS.md
 87aacdc auto: AI_STATUS.md, CLAUDE.md, HANDOFF.md
@@ -67,7 +68,6 @@ ca8ae78 agent: auto-commit before sync
 1efb556 agent: auto-commit before sync
 48f9b5a agent: auto-commit before sync
 11af83d fix: popup cleanup â€” correct success message, remove PDF dead code, safe sendResponse
-188e40c fix: direct download instead of broken editor, improve stitching
 ```
 
 <!-- /AUTO:GIT_LOG -->
