@@ -21,19 +21,22 @@ export default defineConfig({
     developmentIndicator: false,
   },
   manifest: {
-    permissions: [
-      "activeTab",
-      "scripting",
-      "downloads",
-      "tabs",
-      "storage",
-    ],
+    permissions: ["activeTab", "scripting", "downloads", "tabs", "storage"],
     action: {
       default_title: "SnapPage — Screenshot",
     },
-    name: "SnapPage - Full Page Screenshot, Capture & Save",
+    name: "SnapPage - Full Page Screenshot & Capture",
     description:
       "Capture full-page screenshots in one click. Full page, visible area & selection modes. Smart naming, 100% private.",
+    browser_specific_settings: {
+      gecko: {
+        id: "snappage@konabayev.com",
+        strict_min_version: "109.0",
+      },
+      edge: {
+        browser_action_next_to_addressbar: false,
+      },
+    },
     commands: {
       _execute_action: {
         suggested_key: {
