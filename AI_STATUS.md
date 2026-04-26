@@ -1,7 +1,7 @@
 # Project Status
 
 > Auto-updated. Read this before starting any work.
-> Last updated: 2026-04-26 11:40
+> Last updated: 2026-04-26 11:58
 
 ## Goal
 
@@ -11,6 +11,7 @@ Build SnapPage as a privacy-first Chrome extension for local full-page, visible-
 
 - Chrome Web Store rejection recovery for v0.2.0 is complete.
 - v0.2.1 is uploaded and resubmitted to Chrome Web Store review.
+- Firefox AMO v0.2.1 is submitted and awaiting AMO approval.
 
 ## Done
 
@@ -39,11 +40,13 @@ Build SnapPage as a privacy-first Chrome extension for local full-page, visible-
   - Bumped package and popup version to 0.2.1 for a clean resubmission package.
   - Built `.output/snappage-extension-0.2.1-chrome.zip` and submitted it to CWS item `mpgnpajldjibfcaiainoilfdbpconncg`; API status is now `PENDING_REVIEW` for version `0.2.1`.
   - Built `.output/snappage-extension-0.2.1-firefox.zip` plus source package for AMO readiness.
+  - Submitted Firefox AMO listed version with `web-ext sign`; AMO version URL: `https://addons.mozilla.org/en-US/developers/addon/snappage-full-page-screenshot-/versions/6235748`.
+  - Saved local `FIREFOX_EXTENSION_ID=snappage-full-page-screenshot-` in `.env.submit` for future automated AMO updates.
 
 ## Next Up
 
 1. Monitor CWS review for v0.2.1; if approved, replace coming-soon CTAs on konabayev.com with the public install link.
-2. Add AMO extension slug/JWT config, then submit the prepared Firefox package.
+2. Monitor AMO review for version `6235748`.
 3. Create the first Microsoft Edge Add-ons product in Partner Center to obtain `EDGE_PRODUCT_ID`; API automation can handle updates after that.
 4. Build editor/PDF/OCR only after the capture MVP is approved, then update copy and screenshots.
 
