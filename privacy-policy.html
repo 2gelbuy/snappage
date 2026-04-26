@@ -1,62 +1,131 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Privacy Policy — Full Page Screenshot Master</title>
-<style>
-  body { font-family: system-ui, -apple-system, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; color: #1e293b; line-height: 1.7; }
-  h1 { font-size: 1.8rem; margin-bottom: 0.3em; }
-  h2 { font-size: 1.2rem; margin-top: 2em; color: #334155; }
-  .updated { color: #64748b; font-size: 0.9rem; }
-  ul { padding-left: 1.5em; }
-  a { color: #2563eb; }
-</style>
-</head>
-<body>
-<h1>Privacy Policy</h1>
-<p class="updated">Last updated: March 22, 2026</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy Policy - SnapPage</title>
+    <style>
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        max-width: 720px;
+        margin: 40px auto;
+        padding: 0 20px;
+        color: #1e293b;
+        line-height: 1.7;
+      }
+      h1 {
+        font-size: 1.8rem;
+        margin-bottom: 0.3em;
+      }
+      h2 {
+        font-size: 1.2rem;
+        margin-top: 2em;
+        color: #334155;
+      }
+      .updated {
+        color: #64748b;
+        font-size: 0.9rem;
+      }
+      ul {
+        padding-left: 1.5em;
+      }
+      a {
+        color: #2563eb;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: March 22, 2026</p>
 
-<p><strong>Full Page Screenshot Master</strong> is committed to protecting your privacy. This policy explains what data the extension collects (spoiler: none).</p>
+    <p>
+      <strong>SnapPage</strong> is committed to protecting your privacy. This
+      policy explains what data the extension collects and how screenshot
+      processing works.
+    </p>
 
-<h2>Data Collection</h2>
-<p>Full Page Screenshot Master does <strong>not collect, store, transmit, or share any personal data</strong>. Period.</p>
-<ul>
-  <li>No analytics or tracking scripts</li>
-  <li>No cookies</li>
-  <li>No user accounts or registration</li>
-  <li>No server-side processing</li>
-  <li>No data sent to any third party</li>
-</ul>
+    <h2>Data Collection</h2>
+    <p>
+      SnapPage does
+      <strong>not collect, transmit, sell, or share personal data</strong>
+      during normal use.
+    </p>
+    <ul>
+      <li>No analytics or tracking scripts</li>
+      <li>No cookies</li>
+      <li>No user accounts or registration</li>
+      <li>No server-side processing</li>
+      <li>No screenshot data sent to any third party</li>
+    </ul>
 
-<h2>How It Works</h2>
-<p>All screenshots are captured and processed <strong>entirely on your device</strong> using browser APIs. Your screenshots never leave your browser. The extension:</p>
-<ul>
-  <li>Uses <code>chrome.tabs.captureVisibleTab</code> to capture the visible area of your active tab</li>
-  <li>Uses <code>chrome.scripting.executeScript</code> to scroll the page for full-page captures</li>
-  <li>Stitches images using OffscreenCanvas in the service worker</li>
-  <li>Opens an editor tab for annotation — all processing happens locally</li>
-  <li>Uses <code>chrome.downloads</code> to save files to your computer</li>
-</ul>
+    <h2>How It Works</h2>
+    <p>
+      All screenshots are captured and processed
+      <strong>on your device</strong> using browser APIs. During normal use,
+      your screenshots never leave your browser. The extension:
+    </p>
+    <ul>
+      <li>
+        Uses <code>chrome.tabs.captureVisibleTab</code> to capture the visible
+        area of your active tab
+      </li>
+      <li>
+        Uses <code>chrome.scripting.executeScript</code> to scroll the page for
+        full-page captures
+      </li>
+      <li>Stitches images using OffscreenCanvas in the service worker</li>
+      <li>Uses <code>chrome.downloads</code> to save files to your computer</li>
+      <li>
+        Stores capture preferences, capture count, and review prompt state
+        locally with <code>chrome.storage</code>
+      </li>
+    </ul>
 
-<h2>Permissions Explained</h2>
-<ul>
-  <li><strong>activeTab</strong> — capture the currently active tab when you click the extension</li>
-  <li><strong>scripting</strong> — inject scroll commands for full-page capture and area selection overlay</li>
-  <li><strong>downloads</strong> — save screenshots to your computer</li>
-  <li><strong>tabs</strong> — read the page title and URL for auto-naming screenshots</li>
-  <li><strong>storage</strong> — save your preferences (format, quality, capture mode) locally</li>
-</ul>
+    <h2>Permissions Explained</h2>
+    <ul>
+      <li>
+        <strong>activeTab</strong> — capture the currently active tab when you
+        click the extension
+      </li>
+      <li>
+        <strong>scripting</strong> — inject scroll commands for full-page
+        capture and area selection overlay
+      </li>
+      <li><strong>downloads</strong> — save screenshots to your computer</li>
+      <li>
+        <strong>tabs</strong> — read the page title and URL for auto-naming
+        screenshots
+      </li>
+      <li>
+        <strong>storage</strong> — save your preferences (format, quality,
+        capture mode) locally
+      </li>
+    </ul>
 
-<h2>Third-Party Services</h2>
-<p>The extension uses <strong>zero third-party services</strong>. No APIs, no servers, no cloud storage. Everything runs in your browser.</p>
+    <h2>Third-Party Services</h2>
+    <p>
+      The extension does not use analytics, telemetry, remote AI processing,
+      screenshot upload APIs, or cloud storage. A browser-managed uninstall URL
+      may open our website after removal so users can leave feedback.
+    </p>
 
-<h2>Changes to This Policy</h2>
-<p>If we ever change this policy, we will update the "Last updated" date above. Given our commitment to zero data collection, changes are unlikely.</p>
+    <h2>Changes to This Policy</h2>
+    <p>
+      If we ever change this policy, we will update the "Last updated" date
+      above. Given our commitment to zero data collection, changes are unlikely.
+    </p>
 
-<h2>Contact</h2>
-<p>Questions? Email: <a href="mailto:privacy@konabayev.com">privacy@konabayev.com</a></p>
+    <h2>Contact</h2>
+    <p>
+      Questions? Email:
+      <a href="mailto:privacy@konabayev.com">privacy@konabayev.com</a>
+    </p>
 
-<p style="margin-top:3em;color:#94a3b8;font-size:0.85rem;">Full Page Screenshot Master is developed by Konabayev. Source code available on GitHub.</p>
-</body>
+    <p style="margin-top: 3em; color: #94a3b8; font-size: 0.85rem">
+      SnapPage is developed by Konabayev.
+    </p>
+  </body>
 </html>

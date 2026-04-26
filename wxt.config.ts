@@ -27,7 +27,7 @@ export default defineConfig({
     },
     name: "SnapPage - Full Page Screenshot & Capture",
     description:
-      "Capture full-page screenshots in one click. Full page, visible area & selection modes. Smart naming, 100% private.",
+      "Capture full-page, visible-area, or selected-region screenshots locally. Save PNG/JPG with smart names. No account or analytics.",
     browser_specific_settings: {
       gecko: {
         id: "snappage@konabayev.com",

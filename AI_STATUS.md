@@ -1,15 +1,16 @@
 # Project Status
 
 > Auto-updated. Read this before starting any work.
-> Last updated: 2026-04-04 22:07
+> Last updated: 2026-04-26 11:40
 
 ## Goal
 
-Build "Full Page Screenshot Master" -- a privacy-first, AI-powered Chrome extension for full-page screenshots. Monetize via freemium model ($29 lifetime Pro, $3/mo subscription). Target: 20K users in 12 months, $8K/mo revenue.
+Build SnapPage as a privacy-first Chrome extension for local full-page, visible-area, and selected-region screenshots. Current priority is Chrome Web Store rejection recovery with truthful MVP scope.
 
 ## In Progress
 
-- Nothing -- MVP v0.1.0 is built and ready for testing
+- Chrome Web Store rejection recovery for v0.2.0 is complete.
+- v0.2.1 is uploaded and resubmitted to Chrome Web Store review.
 
 ## Done
 
@@ -17,7 +18,7 @@ Build "Full Page Screenshot Master" -- a privacy-first, AI-powered Chrome extens
 - Full audit (2026-03-20): Architecture, UI/UX, Security, Market Research
 - Competitive landscape research
 - Monetization + growth strategy (STRATEGY.md)
-- **v0.1.0 MVP BUILT:**
+- **MVP BUILT:**
   - Full-page capture engine (scroll + captureVisibleTab + offscreen canvas stitch)
   - Visible area capture mode
   - Sticky/fixed element auto-hide during capture
@@ -31,26 +32,28 @@ Build "Full Page Screenshot Master" -- a privacy-first, AI-powered Chrome extens
   - Security: CSP, sender.id validation, filename sanitization, 30K px page height limit
   - Settings persistence (chrome.storage.local)
   - TypeScript: 0 errors, strict mode
-  - Build: 34.12 kB total, 16.59 kB zip
+  - Chrome build works with Manifest V3
+- **v0.2.1 rescue prep (2026-04-26):**
+  - Removed unsupported public claims for editor, PDF export, OCR, and auto-redaction from store listing and local privacy policy.
+  - Confirmed generated Chrome manifest permissions are `activeTab`, `scripting`, `downloads`, `tabs`, and `storage`; no `unlimitedStorage` in the current build output.
+  - Bumped package and popup version to 0.2.1 for a clean resubmission package.
+  - Built `.output/snappage-extension-0.2.1-chrome.zip` and submitted it to CWS item `mpgnpajldjibfcaiainoilfdbpconncg`; API status is now `PENDING_REVIEW` for version `0.2.1`.
+  - Built `.output/snappage-extension-0.2.1-firefox.zip` plus source package for AMO readiness.
 
 ## Next Up
 
-1. **TEST manually** -- load unpacked in Chrome, capture real pages
-2. Build free editor (crop, arrows, text, blur)
-3. Integrate Tesseract.js for local OCR (Pro)
-4. Integrate ExtensionPay for payments
-5. Draft Privacy Policy
-6. Create Chrome Web Store listing
-7. Build SEO landing page on konabayev.com
-8. Launch on Product Hunt + HN
+1. Monitor CWS review for v0.2.1; if approved, replace coming-soon CTAs on konabayev.com with the public install link.
+2. Add AMO extension slug/JWT config, then submit the prepared Firefox package.
+3. Create the first Microsoft Edge Add-ons product in Partner Center to obtain `EDGE_PRODUCT_ID`; API automation can handle updates after that.
+4. Build editor/PDF/OCR only after the capture MVP is approved, then update copy and screenshots.
 
 ## Key Decisions
 
 - **Framework:** WXT 0.20.20 (Manifest V3)
 - **Architecture:** Programmatic injection, offscreen canvas stitching, typed messages
 - **Security:** Explicit CSP, sender validation, filename sanitization, 30K px limit, dev-only logging
-- **Monetization:** Freemium -- Free (capture + editor) / Pro $29 lifetime or $3/mo
-- **Privacy-first:** 100% local processing, no data collection
+- **Monetization:** Keep free MVP until approval and traction; revisit paid editor/OCR after core listing is live.
+- **Privacy-first:** No analytics, telemetry, remote AI, or screenshot uploads during normal use.
 - **Positioning:** "The Privacy-First Smart Screenshot Tool"
 
 <!-- AUTO:GIT_LOG -->
