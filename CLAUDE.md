@@ -1,7 +1,16 @@
+# Local Claude Instructions
+
+<!-- root-claude-rules -->
+@/home/tugelbay/Projects/CLAUDE.md
+
+Root Claude rules apply first. These local notes only add project-specific context.
+
+---
+
 # SnapPage — Full Page Screenshot Chrome Extension
 
-> Part of Mirana Apps portfolio. Parent: C:\Projects\MiranaApps\CLAUDE.md
-> CWS knowledge: C:\Brain\Knowledge\cws-unified.md
+> Part of Mirana Apps portfolio. Parent: /home/tugelbay/Projects/MiranaApps/CLAUDE.md
+> CWS knowledge: /mnt/c/Brain/Knowledge/cws-unified.md
 
 ## This Extension
 
@@ -58,8 +67,8 @@
 
 ## CWS Publish via API (NEVER manual dashboard)
 
-Upload + publish = 2 API calls. See C:\Brain\Knowledge\cws-unified.md for commands.
-Credentials: C:\Projects\MiranaApps\.env.shared
+Upload + publish = 2 API calls. See /mnt/c/Brain/Knowledge/cws-unified.md for commands.
+Credentials: /home/tugelbay/Projects/MiranaApps/.env.shared
 
 ## Session Context
 
