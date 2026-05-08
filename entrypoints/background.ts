@@ -10,6 +10,12 @@ export default defineBackground(() => {
   // Set uninstall URL for feedback collection
   chrome.runtime.setUninstallURL("https://konabayev.com/snappage/uninstall/");
 
+  chrome.runtime.onInstalled.addListener((details) => {
+    if (details.reason === "install") {
+      void chrome.tabs.create({ url: chrome.runtime.getURL("/welcome.html") });
+    }
+  });
+
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message.type === "START_CAPTURE") {
       handleCapture(message)
