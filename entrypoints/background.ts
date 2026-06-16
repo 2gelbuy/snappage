@@ -1,10 +1,19 @@
 import type { CaptureMode, ImageFormat } from "../utils/messages";
 import { buildFilename } from "../utils/sanitize";
-import { MAX_PAGE_HEIGHT, MAX_CAPTURE_TILES } from "../utils/constants";
+import {
+  MAX_PAGE_HEIGHT,
+  MAX_CAPTURE_TILES,
+  MAX_CANVAS_DIM,
+} from "../utils/constants";
 
 // GoFullPage-style overlap: prevents gaps from subpixel/rounding errors
 const SCROLL_PAD = 200;
 const CAPTURE_WAIT = 350;
+// chrome.tabs.captureVisibleTab is throttled to ~2 calls/sec; spacing calls
+// any closer makes Chrome return a stale frame or throw, producing duplicated
+// or missing tiles in the stitched screenshot.
+const MIN_CAPTURE_INTERVAL_MS = 600;
+let lastCaptureVisibleTabAt = 0;
 
 export default defineBackground(() => {
   // Set uninstall URL for feedback collection
@@ -291,12 +300,34 @@ export default defineBackground(() => {
 
     if (!info || info.viewportHeight <= 0)
       throw new Error("Could not read page dimensions");
+
+    // Cheap early out for pages that already fit (re-checked after warmup).
+    if (info.totalHeight <= info.viewportHeight) {
+      return captureAndSave(tab, format, quality);
+    }
+
+    // Warm up lazy / IntersectionObserver content FIRST, then trust the
+    // post-warmup page height. Measuring up front missed content that only
+    // mounts on scroll, leaving sections blank or the bottom uncaptured.
+    const [warmupResult] = await chrome.scripting.executeScript({
+      target: { tabId },
+      func: injectWarmup,
+      args: [info.totalHeight, info.viewportHeight],
+    });
+    const warm = warmupResult?.result as
+      | { totalHeight: number; totalWidth: number }
+      | undefined;
+    if (warm) {
+      info.totalHeight = Math.max(info.totalHeight, warm.totalHeight);
+      info.totalWidth = Math.max(info.totalWidth, warm.totalWidth);
+    }
+
     if (info.totalHeight > MAX_PAGE_HEIGHT)
       throw new Error(
         `Page too tall (${info.totalHeight}px, max ${MAX_PAGE_HEIGHT}px)`,
       );
 
-    // Single viewport — just capture and save
+    // Page may now fit a single viewport, or (more often) have grown taller.
     if (info.totalHeight <= info.viewportHeight) {
       return captureAndSave(tab, format, quality);
     }
@@ -332,8 +363,47 @@ export default defineBackground(() => {
       for (const targetY of scrollPositions) {
         const [scrollResult] = await chrome.scripting.executeScript({
           target: { tabId },
-          func: (y: number) => {
+          func: async (y: number) => {
             window.scrollTo({ top: y, behavior: "instant" as ScrollBehavior });
+            await new Promise((resolve) => requestAnimationFrame(resolve));
+            await new Promise((resolve) => requestAnimationFrame(resolve));
+
+            // Let fonts finish so text isn't captured mid-swap.
+            const fontReady = (document as any).fonts?.ready;
+            if (fontReady?.then) {
+              await Promise.race([
+                fontReady.catch(() => undefined),
+                new Promise((resolve) => setTimeout(resolve, 500)),
+              ]);
+            }
+
+            // Decode images now in view but not yet painted, so lazy content
+            // isn't captured as blank boxes.
+            const visibleImages = Array.from(document.images)
+              .filter((img) => {
+                const rect = img.getBoundingClientRect();
+                return (
+                  rect.bottom >= 0 &&
+                  rect.top <= window.innerHeight &&
+                  rect.width > 0 &&
+                  rect.height > 0 &&
+                  !img.complete
+                );
+              })
+              .slice(0, 30);
+            if (visibleImages.length > 0) {
+              await Promise.race([
+                Promise.allSettled(
+                  visibleImages.map((img) =>
+                    img.decode
+                      ? img.decode().catch(() => undefined)
+                      : undefined,
+                  ),
+                ),
+                new Promise((resolve) => setTimeout(resolve, 700)),
+              ]);
+            }
+
             return { scrollX: window.scrollX, scrollY: window.scrollY };
           },
           args: [targetY],
@@ -388,7 +458,7 @@ export default defineBackground(() => {
     }
   }
 
-  // --- captureVisibleTab with retry ---
+  // --- captureVisibleTab with rate limiting + retry ---
   async function safeCaptureVisibleTab(
     format: "png" | "jpeg",
     quality: number,
@@ -396,6 +466,7 @@ export default defineBackground(() => {
   ): Promise<string> {
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
+        await waitForCaptureSlot();
         const dataUrl = await chrome.tabs.captureVisibleTab({
           format,
           quality: format === "jpeg" ? quality : undefined,
@@ -404,10 +475,21 @@ export default defineBackground(() => {
         return dataUrl;
       } catch (err) {
         if (attempt >= retries) throw err;
-        await sleep(200);
+        await sleep(MIN_CAPTURE_INTERVAL_MS * (attempt + 1));
       }
     }
     throw new Error("captureVisibleTab failed after retries");
+  }
+
+  // Space captureVisibleTab calls so we never trip Chrome's per-second quota.
+  async function waitForCaptureSlot(): Promise<void> {
+    const now = Date.now();
+    const waitMs = Math.max(
+      0,
+      MIN_CAPTURE_INTERVAL_MS - (now - lastCaptureVisibleTabAt),
+    );
+    if (waitMs > 0) await sleep(waitMs);
+    lastCaptureVisibleTabAt = Date.now();
   }
 
   // --- Stitch tiles ---
@@ -425,11 +507,22 @@ export default defineBackground(() => {
   ): Promise<string> {
     const firstBlob = await (await fetch(captures[0].dataUrl)).blob();
     const firstBitmap = await createImageBitmap(firstBlob);
-    const scale = firstBitmap.width / info.viewportWidth;
+    const captureScale = firstBitmap.width / info.viewportWidth;
     firstBitmap.close();
 
-    const canvasW = Math.round(info.totalWidth * scale);
-    const canvasH = Math.round(info.totalHeight * scale);
+    // Tiles are captured at device resolution (captureScale ≈ DPR). A tall page
+    // at DPR > 1 would need a canvas larger than the browser's max side
+    // (~16384px) and render blank. Cap the output scale so neither side exceeds
+    // MAX_CANVAS_DIM; normal pages keep full resolution, only oversized pages
+    // downsample.
+    const outputScale = Math.min(
+      captureScale,
+      MAX_CANVAS_DIM / info.totalHeight,
+      MAX_CANVAS_DIM / info.totalWidth,
+    );
+
+    const canvasW = Math.max(1, Math.round(info.totalWidth * outputScale));
+    const canvasH = Math.max(1, Math.round(info.totalHeight * outputScale));
     const canvas = new OffscreenCanvas(canvasW, canvasH);
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("OffscreenCanvas 2D context failed");
@@ -437,10 +530,21 @@ export default defineBackground(() => {
     for (const capture of captures) {
       const blob = await (await fetch(capture.dataUrl)).blob();
       const bitmap = await createImageBitmap(blob);
+      // Source is capture (device) px; destination is output-canvas px. They
+      // match for normal pages and differ only when the canvas was downscaled,
+      // where drawImage resamples each tile so no content is lost.
+      const destW = Math.round((bitmap.width * outputScale) / captureScale);
+      const destH = Math.round((bitmap.height * outputScale) / captureScale);
       ctx.drawImage(
         bitmap,
-        Math.round(capture.scrollX * scale),
-        Math.round(capture.scrollY * scale),
+        0,
+        0,
+        bitmap.width,
+        bitmap.height,
+        Math.round(capture.scrollX * outputScale),
+        Math.round(capture.scrollY * outputScale),
+        destW,
+        destH,
       );
       bitmap.close();
     }
@@ -496,6 +600,49 @@ export default defineBackground(() => {
     }
 
     w.__ssHidden = hidden;
+  }
+
+  async function injectWarmup(totalHeight: number, viewportHeight: number) {
+    const originalY = window.scrollY;
+    const step = Math.max(300, Math.floor(viewportHeight * 0.85));
+    const measure = () =>
+      Math.max(
+        document.documentElement.scrollHeight,
+        document.body?.scrollHeight || 0,
+      );
+
+    // Scroll through the page to trigger lazy / IntersectionObserver content,
+    // dwelling long enough for each chunk to start loading. If the page grows,
+    // do another bounded pass over the newly revealed area so the height we
+    // report back is stable.
+    let target = totalHeight;
+    for (let pass = 0; pass < 3; pass++) {
+      for (let y = 0; y < target; y += step) {
+        window.scrollTo({ top: y, behavior: "instant" as ScrollBehavior });
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        await new Promise((resolve) => setTimeout(resolve, 150));
+      }
+      const bottom = Math.max(0, target - viewportHeight);
+      window.scrollTo({ top: bottom, behavior: "instant" as ScrollBehavior });
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      const grown = measure();
+      if (grown <= target + 4) break;
+      target = grown;
+    }
+
+    const result = {
+      totalHeight: measure(),
+      totalWidth: Math.max(
+        document.documentElement.scrollWidth,
+        document.body?.scrollWidth || 0,
+      ),
+    };
+
+    window.scrollTo({ top: originalY, behavior: "instant" as ScrollBehavior });
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    return result;
   }
 
   async function getTabHostname(tabId: number): Promise<string> {
