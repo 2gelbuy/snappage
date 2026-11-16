@@ -78,3 +78,6 @@ jobs:
           name: extension-zips
           path: .output/*.zip
           if-no-files-found: error
+          # .output/ is a hidden directory; upload-artifact v4 skips hidden
+          # paths unless this is set.
+          include-hidden-files: true
