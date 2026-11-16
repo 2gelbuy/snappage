@@ -3,6 +3,13 @@
 > Auto-updated. Read this before starting any work.
 > Last updated: 2026-04-26 11:58
 
+## URL & date stamp — 2026-11-17 (branch feat/url-date-stamp, not released)
+
+- Why: SnapPage gets almost no store-search impressions (9 in 30 days to 2026-11-15). Head terms are saturated; "screenshot with URL" has proven demand and one strong incumbent. Research: `../MiranaApps/docs/snappage-keyword-research-2026-11-17.md`.
+- What: optional "Stamp URL & date" toggle in the popup (off by default, saved in `chrome.storage.local`). When on, every mode (full page, visible area, selection, PNG and JPG) gets a light band above the image with the page URL (credentials stripped, long URLs cut with an ellipsis) and the local capture time with UTC offset. Rendering is local (OffscreenCanvas in the background); the output still respects the 16384px canvas limit. File names now use the local date, matching the stamp.
+- Verified: `npm run compile`, `npm test` (5 node:test tests for `utils/stamp.ts`), `npm run build`, and a Playwright run of the built extension in headless Chromium on a local page: all five captures complete, band and text render correctly, the toggle defaults off and persists. Headless Chromium captures 713px of an 800px viewport, so full-page images there end ~90px short with or without the stamp; this is a harness artifact, not checked in a real Chrome window.
+- Next, after the owner approves a release: bump version, then rename the listing to "Full Page Screenshot with URL & Date - SnapPage" with the matching summary, and measure impressions/page views for 30 days against the baseline above. No live store action taken.
+
 ## Goal
 
 Build SnapPage as a privacy-first Chrome extension for local full-page, visible-area, and selected-region screenshots. Current priority is Chrome Web Store rejection recovery with truthful MVP scope.

@@ -1,6 +1,12 @@
 import type { CaptureMode, ImageFormat } from "../utils/messages";
 import { buildFilename } from "../utils/sanitize";
 import {
+  fitText,
+  formatCaptureTime,
+  stampLayout,
+  stampUrl,
+} from "../utils/stamp";
+import {
   MAX_PAGE_HEIGHT,
   MAX_CAPTURE_TILES,
   MAX_CANVAS_DIM,
@@ -14,6 +20,11 @@ const CAPTURE_WAIT = 350;
 // or missing tiles in the stitched screenshot.
 const MIN_CAPTURE_INTERVAL_MS = 600;
 let lastCaptureVisibleTabAt = 0;
+
+interface StampInfo {
+  url: string;
+  time: string;
+}
 
 export default defineBackground(() => {
   // Set uninstall URL for feedback collection
@@ -54,6 +65,7 @@ export default defineBackground(() => {
     format: ImageFormat;
     quality: number;
     outputFormat?: string;
+    stamp?: boolean;
   }): Promise<{ type: string; [key: string]: unknown }> {
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     const tab = tabs[0];
@@ -71,13 +83,17 @@ export default defineBackground(() => {
       );
     }
 
+    const stamp: StampInfo | null = msg.stamp
+      ? { url: stampUrl(url), time: formatCaptureTime(new Date()) }
+      : null;
+
     if (msg.mode === "visible-area") {
-      return captureAndSave(tab, msg.format, msg.quality);
+      return captureAndSave(tab, msg.format, msg.quality, stamp);
     }
     if (msg.mode === "selection") {
-      return captureSelection(tab, msg.format, msg.quality);
+      return captureSelection(tab, msg.format, msg.quality, stamp);
     }
-    return captureFullPage(tab, msg.format, msg.quality);
+    return captureFullPage(tab, msg.format, msg.quality, stamp);
   }
 
   // === Capture visible area and download directly ===
@@ -85,8 +101,12 @@ export default defineBackground(() => {
     tab: chrome.tabs.Tab,
     format: ImageFormat,
     quality: number,
+    stamp: StampInfo | null,
   ): Promise<{ type: string; filename: string }> {
-    const dataUrl = await safeCaptureVisibleTab(format, quality);
+    const captured = await safeCaptureVisibleTab(format, quality);
+    const dataUrl = stamp
+      ? await stampImage(captured, stamp, format, quality)
+      : captured;
     const host = await getTabHostname(tab.id!);
     const filename = buildFilename(host, tab.title || "screenshot", format);
     await chrome.downloads.download({ url: dataUrl, filename, saveAs: true });
@@ -98,6 +118,7 @@ export default defineBackground(() => {
     tab: chrome.tabs.Tab,
     format: ImageFormat,
     quality: number,
+    stamp: StampInfo | null,
   ): Promise<{ type: string; filename: string }> {
     const tabId = tab.id!;
 
@@ -149,7 +170,10 @@ export default defineBackground(() => {
       type: mime,
       quality: format === "jpeg" ? quality / 100 : undefined,
     });
-    const croppedDataUrl = await blobToDataUrl(croppedBlob);
+    const cropped = await blobToDataUrl(croppedBlob);
+    const croppedDataUrl = stamp
+      ? await stampImage(cropped, stamp, format, quality)
+      : cropped;
 
     const host = await getTabHostname(tabId);
     const filename = buildFilename(host, tab.title || "screenshot", format);
@@ -264,6 +288,7 @@ export default defineBackground(() => {
     tab: chrome.tabs.Tab,
     format: ImageFormat,
     quality: number,
+    stamp: StampInfo | null,
   ): Promise<{ type: string; filename: string }> {
     const tabId = tab.id!;
 
@@ -303,7 +328,7 @@ export default defineBackground(() => {
 
     // Cheap early out for pages that already fit (re-checked after warmup).
     if (info.totalHeight <= info.viewportHeight) {
-      return captureAndSave(tab, format, quality);
+      return captureAndSave(tab, format, quality, stamp);
     }
 
     // Warm up lazy / IntersectionObserver content FIRST, then trust the
@@ -329,7 +354,7 @@ export default defineBackground(() => {
 
     // Page may now fit a single viewport, or (more often) have grown taller.
     if (info.totalHeight <= info.viewportHeight) {
-      return captureAndSave(tab, format, quality);
+      return captureAndSave(tab, format, quality, stamp);
     }
 
     // Build scroll positions with overlap
@@ -417,7 +442,10 @@ export default defineBackground(() => {
       }
 
       // Stitch tiles
-      const stitched = await stitchTiles(captures, info, format, quality);
+      const tiled = await stitchTiles(captures, info, format, quality);
+      const stitched = stamp
+        ? await stampImage(tiled, stamp, format, quality)
+        : tiled;
 
       const host = await getTabHostname(tabId);
       const filename = buildFilename(host, tab.title || "screenshot", format);
@@ -643,6 +671,58 @@ export default defineBackground(() => {
     window.scrollTo({ top: originalY, behavior: "instant" as ScrollBehavior });
     await new Promise((resolve) => requestAnimationFrame(resolve));
     return result;
+  }
+
+  // --- URL + capture time band above the image ---
+  async function stampImage(
+    dataUrl: string,
+    stamp: StampInfo,
+    format: ImageFormat,
+    quality: number,
+  ): Promise<string> {
+    const bitmap = await createImageBitmap(await (await fetch(dataUrl)).blob());
+    try {
+      const layout = stampLayout(bitmap.width, bitmap.height, MAX_CANVAS_DIM);
+      const canvas = new OffscreenCanvas(layout.width, layout.height);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("OffscreenCanvas 2D context failed");
+      const { width, bandHeight, padding, fontSize } = layout;
+
+      ctx.fillStyle = "#f1f5f9";
+      ctx.fillRect(0, 0, width, bandHeight);
+      const rule = Math.max(1, Math.round(bandHeight / 28));
+      ctx.fillStyle = "#cbd5e1";
+      ctx.fillRect(0, bandHeight - rule, width, rule);
+
+      ctx.font = `${fontSize}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+      ctx.textBaseline = "middle";
+      const y = (bandHeight - rule) / 2;
+      const measure = (s: string) => ctx.measureText(s).width;
+
+      // Narrow captures keep only the URL; otherwise time sits on the right.
+      const timeWidth = measure(stamp.time);
+      const showTime = width >= timeWidth + padding * 3 + fontSize * 8;
+      let urlMax = width - padding * 2;
+      if (showTime) {
+        ctx.fillStyle = "#475569";
+        ctx.textAlign = "right";
+        ctx.fillText(stamp.time, width - padding, y);
+        urlMax -= timeWidth + padding;
+      }
+      ctx.fillStyle = "#0f172a";
+      ctx.textAlign = "left";
+      ctx.fillText(fitText(stamp.url, urlMax, measure), padding, y);
+
+      ctx.drawImage(bitmap, 0, bandHeight, width, layout.imageHeight);
+
+      const blob = await canvas.convertToBlob({
+        type: format === "jpeg" ? "image/jpeg" : "image/png",
+        quality: format === "jpeg" ? quality / 100 : undefined,
+      });
+      return blobToDataUrl(blob);
+    } finally {
+      bitmap.close();
+    }
   }
 
   async function getTabHostname(tabId: number): Promise<string> {
