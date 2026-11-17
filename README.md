@@ -6,6 +6,7 @@ Capture entire web pages as a single screenshot. 100% private -- nothing leaves 
 
 - Full-page capture (scrolls and stitches automatically)
 - Visible area capture
+- Optional URL and date stamp above the image (popup toggle, off by default)
 - Smart auto-naming: `{domain}_{title}_{date}.png`
 - Auto-hides sticky headers/footers during capture
 - PNG and JPG format with quality control
