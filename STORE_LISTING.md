@@ -61,7 +61,7 @@ English
 1. Full-page capture selected in the popup
 2. Visible-area capture with PNG/JPEG format controls
 3. Selected-region capture overlay on a real webpage
-4. Stamped screenshot: URL and capture time band above a full-page capture (new in 0.3.0, image still to be made)
+4. Stamped screenshot: URL and capture time band above a capture (new in 0.3.0): `store/screenshots/06-url-date-stamp.png`, a real 0.3.0 capture of a demo page; on AMO since 2026-11-17, add to CWS after 0.3.0 is approved
 5. Saved screenshot result in Downloads
 6. Privacy/local-only explanation with permission rationale
 
