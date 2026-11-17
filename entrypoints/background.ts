@@ -5,6 +5,7 @@ import {
   formatCaptureTime,
   stampLayout,
   stampUrl,
+  timeFitsBeside,
 } from "../utils/stamp";
 import {
   MAX_PAGE_HEIGHT,
@@ -23,7 +24,6 @@ let lastCaptureVisibleTabAt = 0;
 
 interface StampInfo {
   url: string;
-  time: string;
 }
 
 export default defineBackground(() => {
@@ -83,9 +83,7 @@ export default defineBackground(() => {
       );
     }
 
-    const stamp: StampInfo | null = msg.stamp
-      ? { url: stampUrl(url), time: formatCaptureTime(new Date()) }
-      : null;
+    const stamp: StampInfo | null = msg.stamp ? { url: stampUrl(url) } : null;
 
     if (msg.mode === "visible-area") {
       return captureAndSave(tab, msg.format, msg.quality, stamp);
@@ -104,12 +102,36 @@ export default defineBackground(() => {
     stamp: StampInfo | null,
   ): Promise<{ type: string; filename: string }> {
     const captured = await safeCaptureVisibleTab(format, quality);
-    const dataUrl = stamp
-      ? await stampImage(captured, stamp, format, quality)
-      : captured;
+    return saveCapture(tab, captured, format, quality, stamp);
+  }
+
+  // One capture time for both the stamp and the file name, taken once the
+  // image exists so the two always agree.
+  async function saveCapture(
+    tab: chrome.tabs.Tab,
+    image: string,
+    format: ImageFormat,
+    quality: number,
+    stamp: StampInfo | null,
+  ): Promise<{ type: string; filename: string }> {
+    const capturedAt = new Date();
+    const url = stamp
+      ? await stampImage(
+          image,
+          stamp.url,
+          formatCaptureTime(capturedAt),
+          format,
+          quality,
+        )
+      : image;
     const host = await getTabHostname(tab.id!);
-    const filename = buildFilename(host, tab.title || "screenshot", format);
-    await chrome.downloads.download({ url: dataUrl, filename, saveAs: true });
+    const filename = buildFilename(
+      host,
+      tab.title || "screenshot",
+      format,
+      capturedAt,
+    );
+    await chrome.downloads.download({ url, filename, saveAs: true });
     return { type: "CAPTURE_COMPLETE", filename };
   }
 
@@ -171,18 +193,7 @@ export default defineBackground(() => {
       quality: format === "jpeg" ? quality / 100 : undefined,
     });
     const cropped = await blobToDataUrl(croppedBlob);
-    const croppedDataUrl = stamp
-      ? await stampImage(cropped, stamp, format, quality)
-      : cropped;
-
-    const host = await getTabHostname(tabId);
-    const filename = buildFilename(host, tab.title || "screenshot", format);
-    await chrome.downloads.download({
-      url: croppedDataUrl,
-      filename,
-      saveAs: true,
-    });
-    return { type: "CAPTURE_COMPLETE", filename };
+    return saveCapture(tab, cropped, format, quality, stamp);
   }
 
   // === Selection overlay (injected into page) ===
@@ -443,18 +454,7 @@ export default defineBackground(() => {
 
       // Stitch tiles
       const tiled = await stitchTiles(captures, info, format, quality);
-      const stitched = stamp
-        ? await stampImage(tiled, stamp, format, quality)
-        : tiled;
-
-      const host = await getTabHostname(tabId);
-      const filename = buildFilename(host, tab.title || "screenshot", format);
-      await chrome.downloads.download({
-        url: stitched,
-        filename,
-        saveAs: true,
-      });
-      return { type: "CAPTURE_COMPLETE", filename };
+      return await saveCapture(tab, tiled, format, quality, stamp);
     } finally {
       // Restore page
       await chrome.scripting
@@ -676,13 +676,29 @@ export default defineBackground(() => {
   // --- URL + capture time band above the image ---
   async function stampImage(
     dataUrl: string,
-    stamp: StampInfo,
+    pageUrl: string,
+    time: string,
     format: ImageFormat,
     quality: number,
   ): Promise<string> {
     const bitmap = await createImageBitmap(await (await fetch(dataUrl)).blob());
     try {
-      const layout = stampLayout(bitmap.width, bitmap.height, MAX_CANVAS_DIM);
+      const font = (size: number) =>
+        `${size}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+      let layout = stampLayout(bitmap.width, bitmap.height, MAX_CANVAS_DIM);
+      const probe = new OffscreenCanvas(1, 1).getContext("2d");
+      if (!probe) throw new Error("OffscreenCanvas 2D context failed");
+      probe.font = font(layout.fontSize);
+      if (
+        !timeFitsBeside(
+          layout.width,
+          probe.measureText(time).width,
+          layout.padding,
+          layout.fontSize,
+        )
+      ) {
+        layout = stampLayout(bitmap.width, bitmap.height, MAX_CANVAS_DIM, 2);
+      }
       const canvas = new OffscreenCanvas(layout.width, layout.height);
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("OffscreenCanvas 2D context failed");
@@ -694,24 +710,41 @@ export default defineBackground(() => {
       ctx.fillStyle = "#cbd5e1";
       ctx.fillRect(0, bandHeight - rule, width, rule);
 
-      ctx.font = `${fontSize}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+      ctx.font = font(fontSize);
       ctx.textBaseline = "middle";
-      const y = (bandHeight - rule) / 2;
       const measure = (s: string) => ctx.measureText(s).width;
+      const textMax = width - padding * 2;
+      const inner = bandHeight - rule;
 
-      // Narrow captures keep only the URL; otherwise time sits on the right.
-      const timeWidth = measure(stamp.time);
-      const showTime = width >= timeWidth + padding * 3 + fontSize * 8;
-      let urlMax = width - padding * 2;
-      if (showTime) {
+      if (layout.lines === 1) {
+        // URL on the left, time on the right.
+        const y = inner / 2;
+        const timeWidth = measure(time);
         ctx.fillStyle = "#475569";
         ctx.textAlign = "right";
-        ctx.fillText(stamp.time, width - padding, y);
-        urlMax -= timeWidth + padding;
+        ctx.fillText(time, width - padding, y);
+        ctx.fillStyle = "#0f172a";
+        ctx.textAlign = "left";
+        ctx.fillText(
+          fitText(pageUrl, textMax - timeWidth - padding, measure),
+          padding,
+          y,
+        );
+      } else {
+        // Narrow capture: URL on top, time below it.
+        ctx.textAlign = "left";
+        ctx.fillStyle = "#0f172a";
+        ctx.fillText(fitText(pageUrl, textMax, measure), padding, inner * 0.32);
+        // Shrink the time slightly rather than cut it; cut only below 8px.
+        const timeWidth = measure(time);
+        if (timeWidth > textMax) {
+          ctx.font = font(
+            Math.max(8, Math.floor((fontSize * textMax) / timeWidth)),
+          );
+        }
+        ctx.fillStyle = "#475569";
+        ctx.fillText(fitText(time, textMax, measure), padding, inner * 0.7);
       }
-      ctx.fillStyle = "#0f172a";
-      ctx.textAlign = "left";
-      ctx.fillText(fitText(stamp.url, urlMax, measure), padding, y);
 
       ctx.drawImage(bitmap, 0, bandHeight, width, layout.imageHeight);
 

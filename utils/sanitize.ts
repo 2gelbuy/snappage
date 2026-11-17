@@ -1,4 +1,5 @@
 import { FILENAME_MAX_LENGTH, FILENAME_SANITIZE_REGEX } from "./constants";
+import { formatCaptureDate } from "./stamp";
 
 export function sanitizeFilename(raw: string): string {
   return (
@@ -14,11 +15,10 @@ export function buildFilename(
   domain: string,
   title: string,
   format: "png" | "jpeg",
+  capturedAt: Date = new Date(),
 ): string {
-  // Local date, so the file name matches the date on the optional stamp.
-  const now = new Date();
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  // Same local date as the optional stamp for the same capture.
+  const date = formatCaptureDate(capturedAt);
   const cleanDomain = sanitizeFilename(domain);
   const cleanTitle = sanitizeFilename(title).slice(0, 80);
   const ext = format === "jpeg" ? "jpg" : "png";

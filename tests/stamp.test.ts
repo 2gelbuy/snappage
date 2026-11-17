@@ -2,9 +2,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   fitText,
+  formatCaptureDate,
   formatCaptureTime,
   stampLayout,
   stampUrl,
+  timeFitsBeside,
 } from "../utils/stamp.ts";
 
 test("capture time is local time with its UTC offset", () => {
@@ -58,9 +60,40 @@ test("long URLs are cut with an ellipsis to fit", () => {
 });
 
 test("stamped URL drops credentials but keeps path, query and hash", () => {
-  assert.equal(
-    stampUrl("https://user:secret@example.com/p?q=1#top"),
-    "https://example.com/p?q=1#top",
-  );
+  const withLogin = new URL("https://example.com/p?q=1#top");
+  withLogin.username = "user";
+  withLogin.password = "pw";
+  assert.ok(withLogin.href.includes("@"));
+  assert.equal(stampUrl(withLogin.href), "https://example.com/p?q=1#top");
   assert.equal(stampUrl("not a url"), "not a url");
+});
+
+test("narrow captures stack the time under the URL instead of dropping it", () => {
+  // A 100px selection on a 2x screen: 200px wide, time about 165px.
+  const one = stampLayout(200, 150, 16384);
+  assert.equal(one.lines, 1);
+  assert.equal(
+    timeFitsBeside(one.width, 165, one.padding, one.fontSize),
+    false,
+  );
+  const two = stampLayout(200, 150, 16384, 2);
+  assert.equal(two.lines, 2);
+  assert.equal(two.fontSize, one.fontSize);
+  assert.ok(two.bandHeight > one.bandHeight);
+  assert.equal(two.height, 150 + two.bandHeight);
+  // Retina full page keeps a single line.
+  const wide = stampLayout(2880, 1800, 16384);
+  assert.equal(
+    timeFitsBeside(wide.width, 800, wide.padding, wide.fontSize),
+    true,
+  );
+  // Two lines still respect the canvas limit.
+  const tall = stampLayout(1280, 16380, 16384, 2);
+  assert.ok(tall.height <= 16384);
+});
+
+test("capture date matches the date on the stamp, also at midnight", () => {
+  const at = new Date(2026, 11, 31, 23, 59);
+  assert.equal(formatCaptureDate(at), "2026-12-31");
+  assert.ok(formatCaptureTime(at).startsWith(`${formatCaptureDate(at)} 23:59`));
 });
