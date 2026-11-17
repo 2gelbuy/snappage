@@ -1,32 +1,34 @@
-export type CaptureMode = 'full-page' | 'visible-area' | 'selection';
-export type ImageFormat = 'png' | 'jpeg';
-export type OutputFormat = 'png' | 'jpeg' | 'pdf';
+export type CaptureMode = "full-page" | "visible-area" | "selection";
+export type ImageFormat = "png" | "jpeg";
+export type OutputFormat = "png" | "jpeg" | "pdf";
 
 export interface StartCaptureMessage {
-  type: 'START_CAPTURE';
+  type: "START_CAPTURE";
   mode: CaptureMode;
   format: ImageFormat;
   quality: number;
+  /** Burn the page URL and capture time into a band above the image. */
+  stamp?: boolean;
 }
 
 export interface CaptureProgressMessage {
-  type: 'CAPTURE_PROGRESS';
+  type: "CAPTURE_PROGRESS";
   current: number;
   total: number;
 }
 
 export interface CaptureCompleteMessage {
-  type: 'CAPTURE_COMPLETE';
+  type: "CAPTURE_COMPLETE";
   filename: string;
 }
 
 export interface CaptureErrorMessage {
-  type: 'CAPTURE_ERROR';
+  type: "CAPTURE_ERROR";
   error: string;
 }
 
 export interface StitchImagesMessage {
-  type: 'STITCH_IMAGES';
+  type: "STITCH_IMAGES";
   images: string[];
   pageWidth: number;
   pageHeight: number;
@@ -38,17 +40,20 @@ export interface StitchImagesMessage {
 }
 
 export interface StitchResultMessage {
-  type: 'STITCH_RESULT';
+  type: "STITCH_RESULT";
   dataUrl: string;
 }
 
 export interface StitchErrorMessage {
-  type: 'STITCH_ERROR';
+  type: "STITCH_ERROR";
   error: string;
 }
 
 export type PopupToBackground = StartCaptureMessage;
-export type BackgroundToPopup = CaptureProgressMessage | CaptureCompleteMessage | CaptureErrorMessage;
+export type BackgroundToPopup =
+  | CaptureProgressMessage
+  | CaptureCompleteMessage
+  | CaptureErrorMessage;
 export type BackgroundToOffscreen = StitchImagesMessage;
 export type OffscreenToBackground = StitchResultMessage | StitchErrorMessage;
 

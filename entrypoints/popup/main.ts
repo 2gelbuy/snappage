@@ -10,6 +10,7 @@ const progressPct = document.getElementById("progress-pct") as HTMLSpanElement;
 const statusEl = document.getElementById("status") as HTMLDivElement;
 const formatSelect = document.getElementById("format") as HTMLSelectElement;
 const qualitySelect = document.getElementById("quality") as HTMLSelectElement;
+const stampInput = document.getElementById("stamp") as HTMLInputElement;
 const modeTabs = document.querySelectorAll<HTMLButtonElement>(
   ".mode-tab:not([disabled])",
 );
@@ -41,6 +42,7 @@ async function loadSettings() {
       "mode",
       "format",
       "quality",
+      "stamp",
       "tipDismissed",
     ]);
     if (
@@ -57,6 +59,7 @@ async function loadSettings() {
     }
     if (data.format) formatSelect.value = data.format as string;
     if (data.quality) qualitySelect.value = data.quality as string;
+    stampInput.checked = data.stamp === true;
     if (data.tipDismissed) tipBanner.classList.add("hidden");
   } catch {
     /* first run */
@@ -69,6 +72,7 @@ function saveSettings() {
       mode: currentMode,
       format: formatSelect.value,
       quality: qualitySelect.value,
+      stamp: stampInput.checked,
     })
     .catch(() => {});
 }
@@ -89,6 +93,7 @@ modeTabs.forEach((tab) => {
 
 formatSelect.addEventListener("change", saveSettings);
 qualitySelect.addEventListener("change", saveSettings);
+stampInput.addEventListener("change", saveSettings);
 
 // === UI States ===
 function setLoading() {
@@ -213,6 +218,7 @@ async function startCapture() {
         mode: currentMode,
         format,
         quality,
+        stamp: stampInput.checked,
       });
       window.close();
       return;
@@ -223,6 +229,7 @@ async function startCapture() {
       mode: currentMode,
       format,
       quality,
+      stamp: stampInput.checked,
     });
 
     if (!response) {
