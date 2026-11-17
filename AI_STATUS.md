@@ -3,7 +3,15 @@
 > Auto-updated. Read this before starting any work.
 > Last updated: 2026-04-26 11:58
 
-## URL & date stamp — 2026-11-17 (branch feat/url-date-stamp, not released)
+## Release 0.3.0 prepared — 2026-11-17 (branch release/0.3.0, not submitted)
+
+- Version 0.3.0 with the URL & date stamp (merged in PR #4). Store name in the manifest is now "Full Page Screenshot + URL & Date - SnapPage" (44 chars; the research draft said "with", shortened to stay under the 45-char limit in STORE_LISTING.md). Summary: "Full-page, visible-area or selected-region screenshots with an optional URL and date stamp. Saved locally as PNG/JPG, no account." Permissions unchanged from 0.2.2.
+- STORE_LISTING.md: new name, summary, a stamp paragraph and bullet for the detailed description, tabs-permission rationale, tags. The detailed description and screenshots are edited in the store dashboards, not in the package.
+- Verified: compile, 7 tests, `npm run zip` and `npm run zip:firefox` (chrome, firefox and sources zips), manifest in the zip checked, and a Playwright run of the zipped build: all 7 captures and the popup toggle work.
+- Not done: no CWS/Edge/AMO upload or submit (needs owner approval); store screenshot showing the stamp not made yet; landing page konabayev.com/snappage/ not updated.
+- Measure after approval: CWS impressions and page views over the first clean 30 days against the 9 impressions / 37 page views baseline (30 days to 2026-11-15).
+
+## URL & date stamp — 2026-11-17 (branch feat/url-date-stamp, merged to master in PR #4, released with 0.3.0)
 
 - Why: SnapPage gets almost no store-search impressions (9 in 30 days to 2026-11-15). Head terms are saturated; "screenshot with URL" has proven demand and one strong incumbent. Research: `../MiranaApps/docs/snappage-keyword-research-2026-11-17.md`.
 - What: optional "Stamp URL & date" toggle in the popup (off by default, saved in `chrome.storage.local`). When on, every mode (full page, visible area, selection, PNG and JPG) gets a light band above the image with the page URL (credentials stripped, long URLs cut with an ellipsis) and the local capture time with UTC offset. Rendering is local (OffscreenCanvas in the background); the output still respects the 16384px canvas limit. File names now use the local date, matching the stamp.

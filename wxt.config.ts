@@ -25,9 +25,9 @@ export default defineConfig({
     action: {
       default_title: "SnapPage — Screenshot",
     },
-    name: "SnapPage - Full Page Screenshot & Capture",
+    name: "Full Page Screenshot + URL & Date - SnapPage",
     description:
-      "Capture full-page, visible-area, or selected-region screenshots locally. Save PNG/JPG with smart names. No account or analytics.",
+      "Full-page, visible-area or selected-region screenshots with an optional URL and date stamp. Saved locally as PNG/JPG, no account.",
     browser_specific_settings: {
       gecko: {
         id: "snappage@konabayev.com",

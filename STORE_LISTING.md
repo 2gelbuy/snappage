@@ -2,11 +2,11 @@
 
 ## Extension Name (max 45 chars)
 
-SnapPage - Full Page Screenshot & Capture
+Full Page Screenshot + URL & Date - SnapPage
 
 ## Short Description (max 132 chars)
 
-Capture full-page, visible-area, or selected-region screenshots locally. Save PNG/JPG with smart names. No account or analytics.
+Full-page, visible-area or selected-region screenshots with an optional URL and date stamp. Saved locally as PNG/JPG, no account.
 
 ## Detailed Description
 
@@ -14,11 +14,14 @@ SnapPage is a lightweight Chrome screenshot extension for saving web pages quick
 
 Use it when you need to capture a whole page, the visible area, or a specific region and save the result as a local PNG or JPEG file.
 
+Need to show where and when a screenshot was taken? Turn on "Stamp URL & date" in the popup. SnapPage adds a slim band above the image with the page address and the capture time with your UTC offset, so a screenshot in a report, QA ticket or SEO audit shows which page it came from and when. Logins in the address are removed, and the stamp is drawn locally.
+
 What SnapPage does:
 
 - Full-page screenshot capture with scroll-and-stitch processing
 - Visible-area capture for the current viewport
 - Selected-region capture with a simple drag overlay
+- Optional URL and date stamp above the image (off by default)
 - PNG and JPEG export
 - Quality control for JPEG screenshots
 - Smart file names based on the current site and page title
@@ -40,8 +43,8 @@ Permissions:
 - activeTab: capture the current tab after you click the extension
 - scripting: run scroll, page-size, and selection overlay logic on the active page
 - downloads: save screenshots to your computer
-- tabs: read the current tab title and URL for local file naming and blocked-page checks
-- storage: save capture preferences and review prompt state locally
+- tabs: read the current tab title and URL for local file naming, the optional URL stamp, and blocked-page checks
+- storage: save capture preferences (including the stamp setting) and review prompt state locally
 
 SnapPage cannot capture Chrome internal pages such as chrome://, edge://, extension pages, or the Chrome Web Store. Browser vendors block those pages for security.
 
@@ -58,9 +61,10 @@ English
 1. Full-page capture selected in the popup
 2. Visible-area capture with PNG/JPEG format controls
 3. Selected-region capture overlay on a real webpage
-4. Saved screenshot result in Downloads
-5. Privacy/local-only explanation with permission rationale
+4. Stamped screenshot: URL and capture time band above a full-page capture (new in 0.3.0, image still to be made)
+5. Saved screenshot result in Downloads
+6. Privacy/local-only explanation with permission rationale
 
 ## Tags/Keywords
 
-screenshot, full page screenshot, screen capture, selected area screenshot, webpage screenshot, PNG screenshot, JPEG screenshot, Chrome screenshot extension, local screenshot tool
+screenshot, full page screenshot, screenshot with url, screenshot with date, timestamp screenshot, screen capture, selected area screenshot, webpage screenshot, PNG screenshot, JPEG screenshot, Chrome screenshot extension, local screenshot tool
